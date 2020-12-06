@@ -10,7 +10,6 @@ class ReadData:
     http://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/XML-TSPLIB/instances/.
     ΠΛηροφορίες για τη δομή του xml στον ιστότοπο:
     http://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/XML-TSPLIB/Description.pdf
-
     """
 
     def __init__(self, name_of_file):
@@ -48,7 +47,7 @@ class ReadData:
         return tree
 
     @staticmethod
-    def get_dimesion(the_file):
+    def get_dimension(the_file):
         """
         Μέθοδος που επιστέφει την διάσταση του προβήματος,
         Κάθε αρχείο .xml περιέχει το tag "vertex" όσα "vertex" έχει το αρχείο τόσοι έιναι και οι κομβοι άρα και η διάσταση
@@ -64,20 +63,21 @@ class ReadData:
             count += 1
 
         return count
+
     @staticmethod
-    def create_graph(the_file, dimesion):
+    def create_graph(the_file, dimension):
         """
         Δημιουργία του γράφου σε αυτή την μέθοδο απο το αρχείο βρήσκουμε τα κόστη και να εισχωρούε σε ενα πίνακα d*d
         οι διαγώνιες τιμές είναι 0
         Απο το αρχείο xml απο το tag edge μπορούμε να πάρουμε τα κόστη.
         :param the_file: το όνομα του αρχείου
-        :param dimesion: Διάσταση προβλήματος
+        :param dimension: Διάσταση προβλήματος
         :return:
         """
         tree = the_file
         root = tree.getroot()
-        # Δημιουργία πίνακα dimesion * dimesion γεμάτος με 0
-        arr = np.zeros((dimesion, dimesion))
+        # Δημιουργία πίνακα dimension * dimension γεμάτος με 0
+        arr = np.zeros((dimension, dimension))
         # Ορίζω τον δείκτη της γραμμής με 0
         row = 0
         # Ορίζω τον δείκτη της στήλης με 0
@@ -91,22 +91,20 @@ class ReadData:
             if row == column:
                 arr[row][column] = 0
                 column += 1
-            """
-            Όταν ο δείκτης της γραμμής και της στήλης δεν είναι όμοιοι τότε εισχωρείται το κόστος 
-            """
+
+            #  Όταν ο δείκτης της γραμμής και της στήλης δεν είναι όμοιοι τότε εισχωρείται το κόστος
             if row != column:
                 # Απο το tag 'vertex' πάρε το attribute 'cost'(έναι ένας πραγματικός αριθμος)
                 arr[row][column] = edge.get('cost')
                 column += 1
                 # Οταν ο δείκτης της στήλης φτάσει στο τέλος τοτε αλλάζουμς γραμμή αυξάνοντας κατά 1 και μηδέζεται η
                 # στήλη
-            if column == dimesion:
+            if column == dimension:
                 column = 0
                 row += 1
-            # if row == dimesion:
+            # if row == dimension:
             #     break
         return arr
-
 
 # read_data = ReadData("data/gr17.xml")
 # # read_data.set_name_of_file("data/att48.xml")
