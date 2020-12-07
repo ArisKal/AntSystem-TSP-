@@ -1,7 +1,6 @@
 import xml.etree.ElementTree as ET
 import numpy as np
 
-
 class ReadData:
     """
     Κλάση ReadData η οποία θα διβάζει τα προβλήματα (TSP) σε μορφή *.xml και τα μετρέπει σε πίνακα (n*n) n = διάσταση
@@ -10,6 +9,9 @@ class ReadData:
     http://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/XML-TSPLIB/instances/.
     ΠΛηροφορίες για τη δομή του xml στον ιστότοπο:
     http://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/XML-TSPLIB/Description.pdf
+
+    -self.name_of_file: Το όνομα του αρχείου.
+    -self.tree:To δέντρο του xml
     """
 
     def __init__(self, name_of_file):
@@ -18,6 +20,12 @@ class ReadData:
         :param name_of_file: το όνομα του αρχείου.
         """
         self.name_of_file = name_of_file
+        try:
+            self.tree = ET.parse(name_of_file)
+        except FileNotFoundError:
+            print("Το αρχείο δεν υπάρχει")
+
+
 
     def set_name_of_file(self, name_of_file):
         """
@@ -26,6 +34,18 @@ class ReadData:
         """
         self.name_of_file = name_of_file
 
+    def set_tree(self, name_of_file):
+        """
+        Διαβάσμα αρχείου *.xml και επιστροφή του δέτρου.
+        :param name_of_file:Το όνομα του αρχείου
+        :return:Επιστοφή δέντρου
+        """
+        try:
+            self.tree = ET.parse(name_of_file)
+        except FileNotFoundError:
+            print("Το αρχείο δεν υπάρχει")
+        return self.tree
+
     def get_name_of_file(self):
         """
         Επιστροφή του ονόματος του αρχειου.
@@ -33,48 +53,42 @@ class ReadData:
         """
         return self.name_of_file
 
-    @staticmethod
-    def read_file(name_of_file):
+    def get_tree(self):
         """
-        Διαβάσμα αρχείου *.xml και επιστροφή του δέτρου.
-        :param name_of_file:Το όνομα του αρχείου
-        :return:Επιστοφή δέντρου
+        Επιστροφή του δέντρου του xml.
+        :return: Επιστροφή του δέντρου του xml.
         """
-        try:
-            tree = ET.parse(name_of_file)
-        except FileNotFoundError:
-            print("Το αρχείο δεν υπάρχει")
-        return tree
+        return self.tree
 
     @staticmethod
-    def get_dimension(the_file):
-        """
-        Μέθοδος που επιστέφει την διάσταση του προβήματος,
-        Κάθε αρχείο .xml περιέχει το tag "vertex" όσα "vertex" έχει το αρχείο τόσοι έιναι και οι κομβοι άρα και η διάσταση
-        του προβλήματος είναι οι κομβοι.
-        :param the_file:Το όνομα του αρχείου.
-        :return:Επιστρέφει την διάσταση του προβηματος
-        """
-        count = 0
-        tree = the_file
-        root = tree.getroot()
-        # Για όλο το αρχείο όταν βρήκει την λέξη "vertex" αύξησε τον μετρητή κατά 1.
-        for vertex in root.iter('vertex'):
-            count += 1
+    def get_dimension(data):
+            """
+            Μέθοδος που επιστέφει την διάσταση του προβήματος,
+            Κάθε αρχείο .xml περιέχει το tag "vertex" όσα "vertex" έχει το αρχείο τόσοι έιναι και οι κομβοι άρα και η διάσταση
+            του προβλήματος είναι οι κομβοι.
+            :param data:Το δεδομένα του αρχείου.
+            :return:Επιστρέφει την διάσταση του προβηματος
+            """
+            count = 0
+            tree = data
+            root = tree.getroot()
+            # Για όλο το αρχείο όταν βρήκει την λέξη "vertex" αύξησε τον μετρητή κατά 1.
+            for vertex in root.iter('vertex'):
+                count += 1
 
-        return count
+            return count
 
     @staticmethod
-    def create_graph(the_file, dimension):
+    def create_graph(data, dimension):
         """
         Δημιουργία του γράφου σε αυτή την μέθοδο απο το αρχείο βρήσκουμε τα κόστη και να εισχωρούε σε ενα πίνακα d*d
         οι διαγώνιες τιμές είναι 0
         Απο το αρχείο xml απο το tag edge μπορούμε να πάρουμε τα κόστη.
-        :param the_file: το όνομα του αρχείου
+        :param data: τα δεδομλενα του αρχείου
         :param dimension: Διάσταση προβλήματος
         :return:
         """
-        tree = the_file
+        tree = data
         root = tree.getroot()
         # Δημιουργία πίνακα dimension * dimension γεμάτος με 0
         arr = np.zeros((dimension, dimension))

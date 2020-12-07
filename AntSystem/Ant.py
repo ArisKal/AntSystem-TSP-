@@ -11,6 +11,7 @@ class Ant:
     :param ant_number o αριθμός του μηρμηγκιού.
     :param starting_node o αρχικός κόμβος που τοποθετειται το μηρμήγκι,
     """
+
     # Κατασκευαστής
     def __init__(self, ant_number, starting_node):
         self.ant_number = ant_number
