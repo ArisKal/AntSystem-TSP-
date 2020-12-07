@@ -1,5 +1,7 @@
 from AntSystem.ReadData import ReadData
+from AntSystem.Ant import Ant
 import numpy as np
+import random as rand
 
 
 class Colony:
@@ -67,12 +69,10 @@ class Colony:
         Τρέχει την αποικία.
         :return:
         """
-        visibility = Colony.set_visibility(self.graph)
-        print(visibility)
-        graph = colony.get_graph()
-        print(graph)
-        initial_pherome = Colony.initialize_phenome(self.dimension, 1)
-        print(initial_pherome)
+        ants = colony.initialize_ants(self.ants, dimension)
+        print(ants)
+        for i in range(0, 17):
+            print(ants[i].get_located_node())
 
     @staticmethod
     def set_visibility(a_graph):
@@ -99,6 +99,23 @@ class Colony:
                 else:
                     initial_pheromone[row][column] = initial_value
         return initial_pheromone
+
+    @staticmethod
+    def initialize_ants(ants, dimension):
+        """
+        Αρχικοποίηση μυρμήγκιων σε τυχαίες αρχικές θέσεις.
+        :param ants: Λίστα άδεια
+        :param dimension: ακέραιος με την διάσταση του προβλήματος.
+        :return: Λίστα αντικειμέων τύπου Αnt με τα μυμρήγκια της αποικίας αρχικοποιημένα στις αρχικές θέσεις.
+        """
+        for ant in range(0, dimension):
+            # Τυχαίος αριθμός είναι  dimension -1 γιατό ξεκινάει απο το 0
+            starting_node = rand.randint(0, dimension - 1)
+            ants.append(Ant(ant, starting_node))
+        return ants
+
+
+
 
 
 
