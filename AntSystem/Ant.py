@@ -83,7 +83,7 @@ class Ant:
         Σε αυτη την μέθοδο υπολογίζεται η πιθανότητα να παει ένα μυρμήγκι απο την πόλη i στην πόλη j :
         p(i|j) = pheromone[i,j] ^ α  *  visibility[i,j] ^ β / Σ pheromone[i,allowed_towns] ^  *
                 visibility[i,allowed_nodes] jE allowed nodes
-        p[i|j] = 0
+        p(i|j) = 0
         :param located_node:Ο τρέχον κόμβος ποου βρίσκεται το μυρμίγκι (ακέραιος).
         :param next_node:Ο επόμενος κόμβος που μπόρει να επισκεφτεί (ακέραιος).
         :param alpha:Μια παράμετρος πραγματικός αριθμός.

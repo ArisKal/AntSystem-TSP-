@@ -158,19 +158,37 @@ class Colony:
 
     @staticmethod
     def built_tour(ant, alpha, beta, pheromone, visibility, dimension):
+        """
+        Μέθοδος που κατασευάζει την διαδρομή που θα ακολουθήσει το μυρμήγκι.
+        :param ant: Αντικείμενο τύπου Ant.
+        :param alpha: Mia σταθερή παράμετρος α.
+        :param beta: Mia σταθερή παράμετρος β.
+        :param pheromone: Η φερομονη στις ακμές μεταξύ των πόλεων.
+        :param visibility: Η "ορατότητα" στις ακμές μεταξύ των πόλεων.
+        :param dimension: Η διάσταση του προβλήματος
+        :return: ενας πίνακα με την διαφρομη που ακολούθησε το μυρμήγκι
+        """
+        # Μέχρι να αδειάσει η λίστα με τις πόλεις που επιτεπεται να πάει το μυρμήγκι
+        # είναι το σύνολο των πόλεων -1 γιάτι ήδη έχουμε αφαιρέσει απο την λίστα την αρχική πόλη.
         for iteration in range(0, dimension - 1):
-            located_node = ant.get_located_node()
-            allowed_nodes = ant.get_allowed_nodes()
+            located_town = ant.get_located_node()
+            allowed_towns = ant.get_allowed_nodes()
             max_probability = 0
-            for index in range(0, len(allowed_nodes)):
-                probability = Ant.transition_probability(located_node, allowed_nodes[index], alpha, beta, pheromone,
+            # Για κάθε τιμή της λίστας
+            for index in range(0, len(allowed_towns)):
+                # Υπολογισμος πιθανότητας να μετακινηθεί απο την πόλη που βρίσκεται αυτη την στιμγή σε μια αλλή πόλη που
+                # βρίσκεται στην λίστα με τις πόλεις που επιτρέπεται να μετακινηθεί.
+                probability = Ant.transition_probability(located_town, allowed_towns[index], alpha, beta, pheromone,
                                                          visibility,
-                                                         allowed_nodes)
+                                                         allowed_towns)
                 if probability > max_probability:
                     max_probability = probability
-                    next_node = allowed_nodes[index]
+                    next_node = allowed_towns[index]
+            # Τρέχον πόλη γίνεται η πόλη με την μεγαλύτερη πιθανότητα.
             ant.set_located_node(next_node)
+            # Την προσθέτει στην λίστα με την διαδρομή.
             ant.set_tour(next_node)
+            # Την αφαιρεί απο την λίστα με τις επιτρεπόμενες πόλεις
             ant.get_allowed_nodes().remove(ant.get_located_node())
         return ant.get_tour()
 
