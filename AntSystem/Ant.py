@@ -1,4 +1,3 @@
-
 class Ant:
     """
     Κλάση Ant περιέχει όλα τα χαρακτηρηστικά του μηρμηγκιού
@@ -8,13 +7,13 @@ class Ant:
     - self.allowed_noded: είναι μία λίστα με τους κόμβους που επριτρέπεται να επισκεφτει το μηρμήγκι.
     - self.tour: είναι μία λίστα με τους κόμβους που έχει επισκεφτει το μηρμήγκι.
 
-    :param ant_number o αριθμός του μηρμηγκιού.
+    :param ant_id o αριθμός του μηρμηγκιού.
     :param starting_node o αρχικός κόμβος που τοποθετειται το μηρμήγκι,
     """
 
     # Κατασκευαστής
-    def __init__(self, ant_number, starting_node):
-        self.ant_number = ant_number
+    def __init__(self, ant_id, starting_node):
+        self.ant_id = ant_id
         self.starting_node = starting_node
         # Στον κατασκευαστή ο τρέχων κόμβος είναι και ο αρχικός κόμβος.
         self.located_node = starting_node
@@ -24,8 +23,8 @@ class Ant:
         self.tour = list()
 
     # Ορίζει ένας αριθμό στο μυρμήγκι.
-    def set_ant_number(self, ant_number):
-        self.ant_number = ant_number
+    def set_ant_id(self, ant_id):
+        self.ant_id = ant_id
 
     # Ορίζει τον αρχικό κόμβο που θα τοποθετηθέι το μηρμήγκι.
     def set_starting_node(self, starting_node):
@@ -41,11 +40,11 @@ class Ant:
 
     # Ορίζει την λίστα με τους κόμβους που έχει επισκευφτεί το μηρμήγκι.
     def set_tour(self, tour):
-        self.tour = tour
+        self.tour.append(tour)
 
     # Επιστρέφει τον αριθμό απο το μυρμήγκι.
-    def get_ant_number(self):
-        return self.ant_number
+    def get_ant_id(self):
+        return self.ant_id
 
     # Επιστρέφει τον αρχικό κόμβο.
     def get_starting_node(self):
@@ -55,30 +54,60 @@ class Ant:
     def get_located_node(self):
         return self.located_node
 
+    def get_allowed_nodes(self):
+        """
+        Επιστροφή λίστας με τους επιτρεπτόμενους κόμβους.
+        :return: Λίστα
+        """
+        return self.allowed_nodes
+
     # Επιστρέφει την λίστα με τους κόμβος που έχει επισκεφτεί.
     def get_tour(self):
         return self.tour
 
     @staticmethod
-    def add_node(a_list, node):
+    def initialize_allowed_nodes(dimension):
         """
-        Προσθέτει στην λίστα εναν κόμβο
-        και την επιστρέφει.
-        :param a_list: Μία λίστα (list())
-        :param node: ο κόμβος (int)
-        :return: Επιστρέφει την λίστα με τον επιπλέον κλομβο
+        Αρχικοποίηση των κόμβων που επιτρέπεται να επισκεφτεί το κάθε μυρμήγκι.
+        :param dimension: Η διάσταση του προβλήματος(ακέραιος).
+        :return: 'Εναν πίνακα με τους κόμβους που επιτρέπεται να επισκεφτεί το μυρμήγκι.
         """
-        a_list.append(node)
-        return a_list
+        allowed_nodes = []
+        for node in range(0, dimension):
+            allowed_nodes.append(node)
+        return allowed_nodes
 
     @staticmethod
-    def remove_node(a_list, node):
+    def transition_probability(located_node, next_node, alpha, beta, pheromone, visibility, allowed):
         """
-        Αφαιρεί απο την λίστα εναν κόμβο
-        και την επιστρέφει.
-        :param a_list: Μία λίστα (list())
-        :param node: ο κόμβος (int)
-        :return: Επιστρέφει την λίστα με τον λιγότερο κλομβο
-       """
-        a_list.remove(node)
-        return a_list
+        Σε αυτη την μέθοδο υπολογίζεται η πιθανότητα να παει ένα μυρμήγκι απο την πόλη i στην πόλη j :
+        p(i|j) = pheromone[i,j] ^ α  *  visibility[i,j] ^ β / Σ pheromone[i,allowed_towns] ^  *
+                visibility[i,allowed_nodes] jE allowed nodes
+        p[i|j] = 0
+        :param located_node:Ο τρέχον κόμβος ποου βρίσκεται το μυρμίγκι (ακέραιος).
+        :param next_node:Ο επόμενος κόμβος που μπόρει να επισκεφτεί (ακέραιος).
+        :param alpha:Μια παράμετρος πραγματικός αριθμός.
+        :param beta:Μια παράμετρος πραγματικός αριθμός.
+        :param pheromone:Η φεροόνη στις ακμές μεταξύ των κόμβων(πίνακας).
+        :param visibility:Η "ορατότητα" στις ακμές μεταξύ των κόμβων(πίνακας)
+        :param allowed: Οι κόμβοι που επιτέπεται να πάει το μυρμήγκι(Λίστα)
+        :return: Πιθανότητα πραγματικός αριθμος.
+        """
+        # Αν ο επόμενος κόμβος βρίσκεται στη λίστα με τους κόμβους που επιτρέπεται να πάει το μυρμήγκι.
+        if next_node in allowed:
+            # Η φερομόνη στην ακμή απο τον κόμβο i στον j
+            pheromone_i_j = pheromone[located_node][next_node] ** alpha
+            # "ορατότητα" στην ακμή απο τον κόμβο i στον j
+            visibility_i = visibility[located_node][next_node] ** beta
+            a = pheromone_i_j * visibility_i
+
+            # Η φερομόνη σε όλες τις ακμές απο τον κόμβο i προς στις πόλεις που επιτρέπεται
+            pheromone_all = pheromone[located_node][allowed] ** alpha
+            # Η ορατόττητα σε όλες τις ακμές απο τον κόμβο i προς στις πόλεις που επιτρέπεται
+            visibility_all = visibility[located_node][allowed] ** beta
+            b = sum(pheromone_all * visibility_all)
+
+            return a / b
+
+        else:
+            return 0

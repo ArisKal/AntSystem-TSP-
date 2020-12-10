@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import numpy as np
 
+
 class ReadData:
     """
     Κλάση ReadData η οποία θα διβάζει τα προβλήματα (TSP) σε μορφή *.xml και τα μετρέπει σε πίνακα (n*n) n = διάσταση
@@ -24,8 +25,6 @@ class ReadData:
             self.tree = ET.parse(name_of_file)
         except FileNotFoundError:
             print("Το αρχείο δεν υπάρχει")
-
-
 
     def set_name_of_file(self, name_of_file):
         """
@@ -62,21 +61,21 @@ class ReadData:
 
     @staticmethod
     def get_dimension(data):
-            """
+        """
             Μέθοδος που επιστέφει την διάσταση του προβήματος,
             Κάθε αρχείο .xml περιέχει το tag "vertex" όσα "vertex" έχει το αρχείο τόσοι έιναι και οι κομβοι άρα και η διάσταση
             του προβλήματος είναι οι κομβοι.
             :param data:Το δεδομένα του αρχείου.
             :return:Επιστρέφει την διάσταση του προβηματος
             """
-            count = 0
-            tree = data
-            root = tree.getroot()
-            # Για όλο το αρχείο όταν βρήκει την λέξη "vertex" αύξησε τον μετρητή κατά 1.
-            for vertex in root.iter('vertex'):
-                count += 1
+        count = 0
+        tree = data
+        root = tree.getroot()
+        # Για όλο το αρχείο όταν βρήκει την λέξη "vertex" αύξησε τον μετρητή κατά 1.
+        for vertex in root.iter('vertex'):
+            count += 1
 
-            return count
+        return count
 
     @staticmethod
     def create_graph(data, dimension):
@@ -84,7 +83,7 @@ class ReadData:
         Δημιουργία του γράφου σε αυτή την μέθοδο απο το αρχείο βρήσκουμε τα κόστη και να εισχωρούε σε ενα πίνακα d*d
         οι διαγώνιες τιμές είναι 0
         Απο το αρχείο xml απο το tag edge μπορούμε να πάρουμε τα κόστη.
-        :param data: τα δεδομλενα του αρχείου
+        :param data: τα δεδομενα του αρχείου
         :param dimension: Διάσταση προβλήματος
         :return:
         """
