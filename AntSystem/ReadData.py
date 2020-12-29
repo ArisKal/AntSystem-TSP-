@@ -118,13 +118,3 @@ class ReadData:
             # if row == dimension:
             #     break
         return arr
-
-# read_data = ReadData("data/gr17.xml")
-# # read_data.set_name_of_file("data/att48.xml")
-# name = read_data.get_name_of_file()
-#
-# file = ReadData.read_file(name)
-# dimesion = ReadData.get_dimesion(file)
-# print(dimesion)
-# graph = ReadData.create_graph(file, dimesion)
-# print(graph)
