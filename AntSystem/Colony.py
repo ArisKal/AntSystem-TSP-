@@ -190,9 +190,7 @@ class Colony:
         :param initial_value: Αρχική τιμή που θα οριστεί(integer).
         :return: Επιστροφή πίνακα με τις αρχικές τιμές την φερομόνης(array).
         """
-        rows, cols = (dimension, dimension)
-        initial_pheromone = [[0 for i in range(cols)] for j in range(rows)]
-        print(initial_pheromone)
+        initial_pheromone = np.zeros((dimension, dimension))
         for row in range(0, dimension):
             for column in range(0, dimension):
                 if row == column:
@@ -212,9 +210,9 @@ class Colony:
         """
         for ant_id in range(0, number_of_ants):
             # Τυχαίος αριθμός είναι  dimension -1 γιατό ξεκινάει απο το 0
-            starting_town = rand.randint(0, dimension - 1)
+            # starting_town = rand.randint(0, dimension - 1)
             # Δημιουργία ενός αντικειμένου τυπου Αnt ορίζω το id του μυμρμηγκιού, και την τυχαία αρχική πόλη
-            ants.append(Ant(ant_id, 0))
+            ants.append(Ant(ant_id, ant_id))
             # Για κάθε μυρμήγκι ορίζω τους κόμβους που επιτρέπεται να πάει
             ants[ant_id].set_allowed_towns(Ant.initialize_allowed_towns(dimension))
             # Αφαιρώ απο την λίστα με τους επιτρεπτόμενους κόμβους τον αρχικο κόμβο
@@ -222,55 +220,18 @@ class Colony:
         return ants
 
     @staticmethod
-    def built_tour(ants, alpha, beta, pheromone, visibility, dimension):
-        """
-        Μέθοδος που κατασευάζει την διαδρομή που θα ακολουθήσει το μυρμήγκι.
-        :param ant: Αντικείμενο τύπου Ant.
-        :param alpha: Mia σταθερή παράμετρος α.
-        :param beta: Mia σταθερή παράμετρος β.
-        :param pheromone: Η φερομονη στις ακμές μεταξύ των πόλεων.
-        :param visibility: Η "ορατότητα" στις ακμές μεταξύ των πόλεων.
-        :param dimension: Η διάσταση του προβλήματος
-        :return: ενας πίνακα με την διαφρομη που ακολούθησε το μυρμήγκι
-        """
-        # Για κάθε μυρμήγκι
-        for ant in ants:
-            Ant.transition_probability(ant, alpha, beta, pheromone, visibility, dimension)
-            # Προθέτει στην λίστα την πόλη με την μεγαλύτερη πιθανότητα.
-
-        return ants
-
-    @staticmethod
-    def quantity_per_unit_of_length_of_pheromone(ants, quantity):
-        """
-        Υπολογισμός της ποσότητας φερομόνης ανα μονάδα συνολικού μήκους διαδρομης
-        κάθε ακμής που την  επισκέφτηκε κάθε μηρμήγκι.
-
-        :param quantity: Πίνακας με την ποσότητα φερομόνης...σε κάθε ακμη
-        :param ants: Λίστα με τα μυρμήγκια που βρίσκονται στης αποκία.
-        :return: ποσότητας φερομόνης ανα μονάδα συνολικού μήκους διαδρομης σε κάθε ακμή
-        """
-        for i in range(0, len(quantity)):
-            for j in range(0, len(quantity)):
-                for k in range(len(ants)):
-                    if (i, j) in ants[k].get_tour():
-                        quantity[i][j] += 1 / ants[k].get_tour_length()
-        return quantity
-
-    @staticmethod
-    def update_pheromone(pheromone, quantity, evaporation_rate):
+    def evaporate_pheromone(pheromone, evaporation_rate):
         """
         Ενημέρωση φερομόνης στις ακμές του γράφου
 
         :param evaporation_rate: Ρυθμός εξάτμισης φερομόνης(real)
         :param pheromone: Πινακας με τις τιμές της φερομόνης πάνω στις ακμές του γράφου(array)
-        :param quantity: Πινακας με τις τιμές της φερομόνης ανα μονάδα συνολικού μήκους διαδρομης
-            πάνω στις ακμές του γράφου(array)
         :return:Πίανκας με την ενημερωμένη φερομόνη(array).
         """
         for i in range(0, len(pheromone)):
             for j in range(0, len(pheromone)):
-                pheromone[i][j] = (1 - evaporation_rate) * pheromone[i][j] + quantity[i][j]
+                if i != j:
+                    pheromone[i][j] *= (1 - evaporation_rate)
         return pheromone
 
     def run(self):
@@ -278,44 +239,39 @@ class Colony:
         Τρέχει την αποικία.
         """
         # Αρχικοποιήση
-        min_tour = np.inf
-        # Αρχικοποήση μίας λίστας που θα περέχει το μήκως των διαδρμών των μυρμήγκιων.
         # Αρχικοποιήση της αρχικής φερομόνης στις ακμές ματαξύ των πόλεων.
         initial_pheromone = Colony.initialize_pheromone(self.dimension, 1)
-        print(initial_pheromone)
         pheromone = initial_pheromone
-
         # Αρχικοποίηση ενός πινακα n * n διαστάσεων που θα περέχει μετα τον υπολογισμό την ποσότητας φερομόνης ανα
         # μονάδα συνολικού μήκους διαδρομης κάθε ακμής που την  επισκέφτηκε κάθε μηρμήγκι.
-        rows, cols = (self.dimension, self.dimension)
-        quantity = [[0 for i in range(cols)] for j in range(rows)]
-
+        quantity = np.zeros((self.dimension, self.dimension))
         # Αρχικοποίηση ενός πίνακα n * n που θα περιέχει μετα τον υπολογισμό θα περιέχει την "ορατότητα" στις ακμές
         # μεταξύ των πόλεων.
         visibility = Colony.set_visibility(self.a_graph)
         # Αρχικοποίση μυρμήγκιών στην αποικία.
         ants = Colony.initialize_ants(self.ants, self.number_of_ants, self.dimension)
-        # print("============================Initialize========================================")
-        # for k in range(0, self.number_of_ants):
-        #     print("ant id:", ants[k].get_ant_id())
-        #     print("starting node:", ants[k].get_starting_town())
-        #     print("allowed nodes:", ants[k].get_allowed_towns())
 
-        # print("==========================TOURS=================================================")
         for nc in range(0, self.number_of_cycles):
-            # print(nc)
-            Colony.built_tour(ants, self.alpha, self.beta, pheromone, visibility, self.dimension)
-            # Ant.compute_tour_length(ants, self.a_graph)
-            # Colony.quantity_per_unit_of_length_of_pheromone(ants, quantity)
-            # Colony.update_pheromone(pheromone, quantity, self.evaporation_rate)
-            # for ant in ants:
-            #     # if ant.get_tour_length() < self.min_length:
-            #     #     self.min_length = ant.get_tour_length()
-            #     print("tour:", ant.get_tour())
-            #     # print(ant.get_tour_length())
-            # for k in range(0, self.number_of_ants):
-            #     ants[k].set_allowed_towns(Ant.initialize_allowed_towns(self.dimension))
-            #     ants[k].get_tour().clear()
-            #     # ants[k].set_located_town(ants[k].get_starting_town())
-            #     ants[k].get_allowed_towns().remove(ants[k].get_starting_town())
-            # quantity = [[0 for i in range(cols)] for j in range(rows)]
+            print(nc)
+            # Μέχρι η λίστα με την διαδρομή να γεμίσει εναι το πληθος των πόλεων -1 γιατι βρίσκεται ήδη στην αρχική πόλη
+            for ant in ants:
+                for move in range(self.dimension - 1):
+                    # Μετακίνησε το μυρμήγκι στη επόμενη πόλη
+                    next_town = Ant.next_town(ant, self.alpha, self.beta, pheromone, visibility, self.dimension)
+                    Ant.move_ant(ant, next_town)
+            for ant in ants:
+                # Μετάκινησε το μυρμήγκη στην αρχική πόλη
+                Ant.move_ant_at_starting_node(ant)
+                Ant.compute_tour_length(ant, self.a_graph)
+                if ant.get_tour_length() < self.min_length:
+                    self.min_length = ant.get_tour_length()
+                    self.set_shortest_tour(ant.get_tour()[:])
+                Ant.quantity_per_unit_of_length_of_pheromone(ant, quantity, self.dimension)
+            Colony.evaporate_pheromone(pheromone, self.evaporation_rate)
+            for ant in ants:
+                ant.set_allowed_towns(Ant.initialize_allowed_towns(self.dimension))
+                ant.get_tour().clear()
+                ant.get_allowed_towns().remove(ant.get_starting_town())
+                ant.set_tour_length(0)
+
+            # quantity = np.zeros((self.dimension, self.dimension))

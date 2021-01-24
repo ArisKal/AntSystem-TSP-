@@ -52,7 +52,7 @@ class Ant:
     def set_tour_length(self, tour_length):
         """
         Ορίζει το συνολικό μήκος της διαδρομής
-        :param length: float
+        :param tour_length:
         """
         self.tour_length = tour_length
 
@@ -125,122 +125,105 @@ class Ant:
         return allowed_towns
 
     @staticmethod
-    def transition_probability(ant, alpha, beta, pheromone, visibility, number_of_towns):
+    def multiply_function(pheromone, visibility, located_town, possibly_next_town, alpha, beta):
         """
-        Σε αυτη την μέθοδο υπολογίζεται η πιθανότητα να παει ένα μυρμήγκι απο την πόλη i στην πόλη j :
-        p(i|j) = pheromone[i,j] ^ α  *  visibility[i,j] ^ β / Σ pheromone[i,allowed_towns] ^  *
-                visibility[i,allowed_towns] jE allowed towns
-        p(i|j) = 0
-        :param number_of_towns:
-        :param located_town:H τρέχον πόλη ποου βρίσκεται το μυρμίγκι (ακέραιος).
-        :param next_town:Η επόμη πόλη που μπόρει να επισκεφτεί (ακέραιος).
-        :param alpha:Μια παράμετρος πραγματικός αριθμός.
-        :param beta:Μια παράμετρος πραγματικός αριθμός.
-        :param pheromone:Η φεροόνη στις ακμές μεταξύ των πόλεων(πίνακας).
-        :param visibility:Η "ορατότητα" στις ακμές μεταξύ των πόλεων(πίνακας)
-        :param allowed_towns: Οι πόλεις που επιτέπεται να επισκεφτεί το μυρμήγκι(Λίστα)
-        :return: Πιθανότητα πραγματικός αριθμος.
+        Σε αύτη τη μέθοδο πολαπλασιάζεται η φερομόνη ως προς το α με την ορατότητα ως προς το β
+        της ακμή απο την τρέχων πόλη ως προς στην πιθανή επόμενη πόλη.
+        :param pheromone: η φερομόνη μεταξλυ των πόλεων.
+        :param visibility η ορατότηα μεταξύ των πόλεων
         """
-        # Αν ο επόμενη πόλη βρίσκεται στη λίστα με τις πόλεις που επιτρέπεται να επισκεφτεί το μυρμήγκι.
-        flag = True
-        prob = list()
-        for possibly_next_town in range(0, number_of_towns - 1):
-            if possibly_next_town in ant.get_allowed_towns():
-                sum = 0
-                for allowed_town in range(0, len(ant.get_allowed_towns())):
-                    pheromone_all = pheromone[ant.get_located_town()][
-                                        ant.get_allowed_towns()[allowed_town]] ** alpha
-                    visibility_all = visibility[ant.get_located_town()][
-                                         ant.get_allowed_towns()[allowed_town]] ** beta
-                    sum += pheromone_all * visibility_all
-                for allowed_town in range(0, len(ant.get_allowed_towns())):
-                    pheromone_next = pheromone[ant.get_located_town()][ant.get_allowed_towns()[allowed_town]] ** alpha
-                    visibility_next = visibility[ant.get_located_town()][ant.get_allowed_towns()[allowed_town]] ** beta
-                    b = pheromone_next * visibility_next
-                    prob.append(b / sum)
-            else:
-                prob.append(0)
-
-                next_town = random.choice(prob)
-                print(next_town)
-                prob = list()
-                ant.set_tour((ant.located_town, next_town))
-            # Γίνεται τρέχον πόλη η πόλη με την μεγαλύτερη πιθανότητα.
-                ant.set_located_town(next_town)
-            # Την αφαιρεί απο την λίστα με τις επιτρεπόμενες πόλεις
-                ant.get_allowed_towns().remove(ant.get_located_town())
-        # Προσθέτει στην λίστα με την διαδρομή την αρχική πόλη
-        ant.set_tour((ant.get_located_town(), ant.get_starting_town()))
-        # Γίνεται τρέχον πόλη η αρχική.
-        ant.set_located_town(ant.get_starting_town())
-
-        print(ant.get_tour())
-
-        # global next_town
-        # probs = []
-        #
-        # while len(ant.allowed_towns) > 0:
-        #     b = 0
-        #     if node in ant.allowed_towns:
-        #         for node in range(0, 5):
-        #             # Η φερομόνη σε όλες τις ακμές απο την πόλη i προς στις πόλεις που επιτρέπεται
-        #             pheromone_all = pheromone[ant.get_located_town()][ant.allowed_towns[i]] ** alpha
-        #             # Η ορατόττητα σε όλες τις ακμές απο την πόλη i προς στις πόλεις που επιτρέπεται
-        #             visibility_all = visibility[ant.get_located_town()][ant.allowed_towns[i]] ** beta
-        #             b += pheromone_all * visibility_all
-        #     for i in range(0, len(ant.allowed_towns)):
-        #
-        #         # Η φερομόνη στην ακμή απο την πόλη i στον j
-        #         pheromone_i_j = pheromone[ant.get_located_town()][node] ** alpha
-        #         # "ορατότητα" στην ακμή απο την πόλη i στον j
-        #         visibility_i = visibility[ant.get_located_town()][node] ** beta
-        #         a = pheromone_i_j * visibility_i
-        #         probability = a / b
-        #         probs.append(probability)
-        #     else:
-        #         probability = 0
-        #         probs.append(probability)
-        #
-        #     print(probs)
-        #     rand = random.uniform(0, 1)
-        #     # print("rand", rand)
-        #     total = 0
-        #     for i in range(0, 5):
-        #         total += probs[i]
-        #         # print("total", total)
-        #         if total >= rand:
-        #             next_town = i
-        #             break
-        #     # print("next", i)
-        #     # next_town = ant.allowed_towns[i]
-        #     # print(next_town)
-        #
-        #  #if probability > max_probability:
-        #
-        # #     #     max_probability = probability
-        # #     #     next_town = prob_next
-        #     ant.set_tour((ant.located_town, next_town))
-        # #     # Γίνεται τρέχον πόλη η πόλη με την μεγαλύτερη πιθανότητα.
-        #     ant.set_located_town(next_town)
-        # #     # Την αφαιρεί απο την λίστα με τις επιτρεπόμενες πόλεις
-        #     ant.get_allowed_towns().remove(ant.get_located_town())
-        # # # Προσθέτει στην λίστα με την διαδρομή την αρχική πόλη
-        # ant.set_tour((ant.get_located_town(), ant.get_starting_town()))
-        # # # # Γίνεται τρέχον πόλη η αρχική.
-        # ant.set_located_town(ant.get_starting_town())
+        return pheromone[located_town][possibly_next_town] ** alpha \
+               * visibility[located_town][possibly_next_town] ** beta
 
     @staticmethod
-    def compute_tour_length(ants, a_graph):
+    def next_town(ant, alpha, beta, pheromone, visibility, number_of_towns):
+        """
+        Σε αυτη την μεθόδο υλοποιείται σε ποιά πόλη θα μετακινιθεί το μυρμήγκι Ποιο συγκεκριμένα απο τις πόλεις που
+        επιτρέπεται να μετακινηθεί το μυρμήγγκι θα υπολογίσουμε το συνολο του αποτελέσματος της μεθόδου multiply_function
+        Υστερα για κάθε πολη που υπάρχει στον γραφο θα υπολογίσουμε την πιθανότητα να μετακινηθει το μυρμήγκι για κάθε
+        πόλη που επιτρέπεται τα επισκεφτεί το μυρμήγκι θα υπολογίζεται το multiply_function και θα διαιρήται με το
+        σύνολο που βρέθηκε προηγουμένος, το αποτέλεσμα αυτο θα μπάινει σε μια λίστα που θα έχει τις πιθανότητες για
+        κάθε πόλη για να μετακινηθει το μυρμήγκι, αν η πιθανη πόλη που επιλέγεται δεν επιτρέπεται να πάει το μυρμμηγκι
+        γιατι την έχει επισκεφτεί προηγουμένος τότε στην λίστα με τις πιθανότητες θα μπάινει το 0 η επολογη της επόμενης
+        πόλης που θα μετακινηθεί το μυρμήγκι θα επιλέγεται με μία μεθοδο τυχαιιότητας.
+        :param number_of_towns: o συνολικός αριθμός των πόλεων που υπάρχουν στον γράφο.
+        :param visibility: Η ορατότηα μεταξύ των πόλεων.
+        :param pheromone: Η φερομόνη μεταξύ των πόλεων.
+        :param beta: Η παράμετρος β.
+        :param alpha:Η παράμετρος α.
+        :param ant: Ενα αντικείμενο τυπου ant
+        """
+        # Δημιουργια λίστας με τις πιθανότητες να μετακινήθει το μιρμήγκι απο την πόλη i στην πόλη j.
+        prob = list()
+        sum_all = 0
+        # Η τρέχων πόλη που βρίσκεται το μυρμήγκι.
+        located_town = ant.get_located_town()
+        # Για κάθε πόλη που επιτρέπεται να πάει το μυρμύγκι.
+        for allowed_town in range(0, len(ant.get_allowed_towns())):
+            allowed_town = ant.get_allowed_towns()[allowed_town]
+            # Υπολόγισε τον πολαπλασιασμο της φερομονης και της ορατοτητας για την επόμενη πόλη και προσθεσέ το
+            sum_all += Ant.multiply_function(pheromone, visibility, located_town, allowed_town, alpha, beta)
+        # Για κάθε πιθανή πόλη(ολες οι πόλεις του γράφου)
+        for possibly_next_town in range(0, number_of_towns):
+            # Αν επιτρέται να παει στην πιθανή πόλη τοτε:
+            if possibly_next_town in ant.get_allowed_towns():
+                # Υπολόγισε τον πολαπλασιασμο της φερομονης και της ορατοτητας για την επόμενη πόλη.
+                a = Ant.multiply_function(pheromone, visibility, located_town, possibly_next_town, alpha, beta)
+                # Τότε η πιθανότητα να παει σε αυτη την πόλη ειναι a/sum_all.
+                probability = a / sum_all
+                prob.append(probability)
+            else:
+                # Αλλιώς αν δεν επιτρέπεται να παέι σε αυτη την πόλη τοτε η πιθανότητα ειναι 0
+                prob.append(0)
+        # Επιλογη της πόλης απο την λίστα με τις πιθανότητες με μια μέθοδο τυχαιότητας.
+        r = random.uniform(0, 1)
+        total = 0
+        next_town = int()
+        for i in range(0, number_of_towns):
+            total += prob[i]
+            if total >= r:
+                next_town = i
+                break
+        prob.clear()
+        return next_town
+
+    @staticmethod
+    def move_ant(ant, next_town):
+        ant.set_tour((ant.located_town, next_town))
+        # Γίνεται τρέχον πόλη η πόλη με την μεγαλύτερη πιθανότητα.
+        ant.set_located_town(next_town)
+        ant.get_allowed_towns().remove(ant.get_located_town())
+
+    @staticmethod
+    def move_ant_at_starting_node(ant):
+        """
+        Επιστροφη μυρμηγκιού στην αρχικη πόλη
+        :param ant:
+        :return:
+        """
+        ant.set_tour((ant.get_located_town(), ant.get_starting_town()))
+        ant.set_located_town(ant.get_starting_town())
+
+    @staticmethod
+    def quantity_per_unit_of_length_of_pheromone(ant, pheromone_ant_leaves, number_of_towns):
+        """
+        Υπολογισμός της ποσότητας φερομόνης που αφήνει κάθε μυρήγκι
+        """
+        # print(ant.get_tour())
+        for i in range(0, number_of_towns):
+            # print(ant.get_tour()[i][0], ant.get_tour()[i][1])
+            pheromone_ant_leaves[ant.get_tour()[i][0]][ant.get_tour()[i][1]] += 1 / ant.get_tour_length()
+        return pheromone_ant_leaves
+
+    @staticmethod
+    def compute_tour_length(ant, a_graph):
         """
         Υπολογισμός διαδρομής κάθε μυρμηγκιού.
-        :param ants: Λίστα με αντικείμενα τύπου Ant
+        :param ant:
         :param a_graph: Γράφος σε μορφη πίνκα.(array)
         :return: Λίστα με αντικείμενα τύπου Ant
         """
-        for k in range(0, len(ants)):
-            length = 0
-            for i in range(0, len(a_graph)):
-                length += a_graph[ants[k].get_tour()[i][0]][ants[k].get_tour()[i][1]]
-                print(length)
-            ants[k].set_tour_length(length)
-        return ants
+        length = 0
+        for i in range(0, len(a_graph)):
+            length += a_graph[ant.get_tour()[i][0]][ant.get_tour()[i][1]]
+        ant.set_tour_length(length)

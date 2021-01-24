@@ -21,10 +21,7 @@ class ReadData:
         :param name_of_file: το όνομα του αρχείου.
         """
         self.name_of_file = name_of_file
-        try:
-            self.tree = ET.parse(name_of_file)
-        except FileNotFoundError:
-            print("Το αρχείο δεν υπάρχει")
+        self.tree = ET.parse(name_of_file)
 
     def set_name_of_file(self, name_of_file):
         """
@@ -39,10 +36,7 @@ class ReadData:
         :param name_of_file:Το όνομα του αρχείου
         :return:Επιστοφή δέντρου
         """
-        try:
-            self.tree = ET.parse(name_of_file)
-        except FileNotFoundError:
-            print("Το αρχείο δεν υπάρχει")
+        self.tree = ET.parse(name_of_file)
         return self.tree
 
     def get_name_of_file(self):
@@ -59,41 +53,23 @@ class ReadData:
         """
         return self.tree
 
-    @staticmethod
-    def get_dimension(data):
-        """
-            Μέθοδος που επιστέφει την διάσταση του προβήματος,
-            Κάθε αρχείο .xml περιέχει το tag "vertex" όσα "vertex" έχει το αρχείο τόσοι έιναι και οι κομβοι άρα και η διάσταση
-            του προβλήματος είναι οι κομβοι.
-            :param data:Το δεδομένα του αρχείου.
-            :return:Επιστρέφει την διάσταση του προβηματος
-            """
-        count = 0
-        tree = data
-        root = tree.getroot()
-        # Για όλο το αρχείο όταν βρήκει την λέξη "vertex" αύξησε τον μετρητή κατά 1.
-        for vertex in root.iter('vertex'):
-            count += 1
-
-        return count
-
-    @staticmethod
-    def create_graph(data, dimension):
+    def get_cost_matrix(self):
         """
         Δημιουργία του γράφου σε αυτή την μέθοδο απο το αρχείο βρήσκουμε τα κόστη και να εισχωρούε σε ενα πίνακα d*d
         οι διαγώνιες τιμές είναι 0
         Απο το αρχείο xml απο το tag edge μπορούμε να πάρουμε τα κόστη.
-        :param data: τα δεδομενα του αρχείου
-        :param dimension: Διάσταση προβλήματος
         :return:
         """
-        tree = data
+        tree = self.tree
         root = tree.getroot()
+        dimension = 0
+        for vertex in root.iter('vertex'):
+            dimension += 1
         # Δημιουργία πίνακα dimension * dimension γεμάτος με 0
         arr = np.zeros((dimension, dimension))
         # Ορίζω τον δείκτη της γραμμής με 0
         row = 0
-        # Ορίζω τον δείκτη της στήλης με 0
+        # Ορίζω τον δείκ"τη της στήλης με 0
         column = 0
         # Για κάθε tag edge:
         for edge in root.iter('edge'):
@@ -118,3 +94,19 @@ class ReadData:
             # if row == dimension:
             #     break
         return arr
+
+    @staticmethod
+    def get_dimension(data):
+        """
+        Μέθοδος που επιστέφει την διάσταση του προβήματος, Κάθε αρχείο .xml περιέχει το tag "vertex" όσα "vertex"
+        έχει το αρχείο τόσοι έιναι και οι κομβοι άρα και η διάσταση του προβλήματος είναι οι κομβοι. :param data:Το
+        δεδομένα του αρχείου. :return:Επιστρέφει την διάσταση του προβηματος
+        """
+        count = 0
+        tree = data
+        root = tree.getroot()
+        # Για όλο το αρχείο όταν βρήκει την λέξη "vertex" αύξησε τον μετρητή κατά 1.
+        for vertex in root.iter('vertex'):
+            count += 1
+        return count
+

@@ -14,6 +14,15 @@ class ReadAtt:
         self.file_name = file_name
         self.file = open(file_name)
         self.data = list()
+        for line in self.file:
+            # Όταν βρεί την γραμμή "NODE_COORD_SECTION" τότε θα αρχίσει να γράφει στην λίστα καθε γραμή.
+            if 'NODE_COORD_SECTION' in line:
+                for line in self.file:
+                    # Όταν βρει "EOF τοτε σταματαει να γράφει στην λίστα.
+                    if "EOF" in line:
+                        break
+                    else:
+                        self.data.append(line.split())
 
     def set_file_name(self, file_name):
         """
@@ -65,18 +74,17 @@ class ReadAtt:
         """
         return self.data
 
-    @staticmethod
-    def get_cost_matrix(data):
+    def get_cost_matrix(self):
         """
         Επιστρέφει τον πίνακα με τα κόστη μεταξύ των πόλεων,απο τι αρχείο
-        :param data: Λίστα με τα δεδομένα του αρχείου
         :return: Επιστρέφει τον πίνακα με τα κόστη μεταξύ των πόλεων.
         """
         # Λίστα με dictionaries που θα περίεχει τις πόλεις με τις συντεταγμένες.
         cities = list()
-        for i in range(0, len(data)):
+        for i in range(0, len(self.data)):
             # Λίστα με τις πόλεις σε dictionary με keys city(το id της πόλης), coord_x(αξονας χ), coord_y(αξονας ψ)
-            cities.append({"city": int(data[i][0]), "coord_x": int(data[i][1]), "coord_y": int(data[i][2])})
+            cities.append(
+                {"city": int(self.data[i][0]), "coord_x": int(self.data[i][1]), "coord_y": int(self.data[i][2])})
         # Αύξουσα ταξινόμηση στην λίστα με τις πόλεις ανάλογα με το id της πόλης
         cities = sorted(cities, key=lambda k: k["city"])
         # Δημηουργία πίνακα με τα κόστη
@@ -88,13 +96,34 @@ class ReadAtt:
                     cost_matrix[i][j] = 0
                 else:
                     # Υπολογισμος της απόστασης μεταξύ των πόλεων i και j
-                    cost_matrix[i][j] = ReadAtt.pseudo_euclidean_distance(cities[i], cities[j])
+                    cost_matrix[i][j] = ReadAtt.euclidean_distance(cities[i], cities[j])
         return cost_matrix
 
+    # @staticmethod
+    # def pseudo_euclidean_distance(city_i, city_j):
+    #     """
+    #     Υπολογισμός της αποστασης απο την πόλη i στην πόλη j με την συνάρτηση "pseudo-Euclidean"
+    #     tsp95 manual σελ.7
+    #     :param city_i:Πόλη i (real)
+    #     :param city_j:Πόλη j (real)
+    #     :return: Επιστρέφει την αποσταση απο την πόλη i στην πόλη j (real)
+    #     """
+    #     # Αποσταση μεταξύ των πόλεων ως προς τον άξονα x
+    #     xd = city_i["coord_x"] - city_j["coord_x"]
+    #     # Αποσταση μεταξύ των πόλεων ως προς τον άξονα y
+    #     yd = city_i["coord_y"] - city_j["coord_y"]
+    #     rij = math.sqrt((xd * xd + yd * yd) / 10.0)
+    #     tij = round(rij)
+    #     if tij < rij:
+    #         dij = tij + 1
+    #     else:
+    #         dij = tij
+    #     return dij
+
     @staticmethod
-    def pseudo_euclidean_distance(city_i, city_j):
+    def euclidean_distance(city_i, city_j):
         """
-        Υπολογισμός της αποστασης απο την πόλη i στην πόλη j με την συνάρτηση "pseudo-Euclidean"
+        Υπολογισμός της αποστασης απο την πόλη i στην πόλη j με την συνάρτηση "Euclidean"
         tsp95 manual σελ.7
         :param city_i:Πόλη i (real)
         :param city_j:Πόλη j (real)
@@ -104,10 +133,6 @@ class ReadAtt:
         xd = city_i["coord_x"] - city_j["coord_x"]
         # Αποσταση μεταξύ των πόλεων ως προς τον άξονα y
         yd = city_i["coord_y"] - city_j["coord_y"]
-        rij = math.sqrt((xd * xd + yd * yd) / 10.0)
-        tij = round(rij)
-        if tij < rij:
-            dij = tij + 1
-        else:
-            dij = tij
+        dij = math.sqrt(math.pow(xd, 2) + math.pow(yd, 2))
         return dij
+
