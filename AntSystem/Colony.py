@@ -182,7 +182,7 @@ class Colony:
             # Τυχαίος αριθμός είναι  dimension -1 γιατό ξεκινάει απο το 0
             starting_town = rand.randint(0, dimension - 1)
             # Δημιουργία ενός αντικειμένου τυπου Αnt ορίζω το id του μυμρμηγκιού, και την τυχαία αρχική πόλη
-            ants.append(Ant(ant_id, starting_town))
+            ants.append(Ant(ant_id, ant_id))
             # Για κάθε μυρμήγκι ορίζω τους κόμβους που επιτρέπεται να πάει
             ants[ant_id].set_allowed_towns(Ant.initialize_allowed_towns(dimension))
             # Αφαιρώ απο την λίστα με τους επιτρεπτόμενους κόμβους τον αρχικο κόμβο
@@ -205,30 +205,60 @@ class Colony:
         # είναι το σύνολο των πόλεων -1 γιάτι ήδη έχουμε αφαιρέσει απο την λίστα την αρχική πόλη.
         global next_town
         for iteration in range(0, dimension - 1):
-            located_town = ant.get_located_town()
-            allowed_towns = ant.get_allowed_towns()
-            max_probability = 0
-            # Για κάθε τιμή της λίστας
-            for index in range(0, len(allowed_towns)):
-                # Υπολογισμος πιθανότητας να μετακινηθεί απο την πόλη που βρίσκεται αυτη την στιμγή σε μια αλλή πόλη που
-                # βρίσκεται στην λίστα με τις πόλεις που επιτρέπεται να μετακινηθεί.
-                probability = Ant.transition_probability(located_town, allowed_towns[index], alpha, beta, pheromone,
-                                                         visibility,
-                                                         allowed_towns)
-                if probability > max_probability:
-                    max_probability = probability
-                    next_town = allowed_towns[index]
+            sum_all = 0
+            probability_list = list()
+            for allowed_town in range(0,len(ant.get_allowed_towns())):
+                sum_all += pheromone[ant.get_located_town()][ant.get_allowed_towns()[allowed_town]] ** alpha * visibility[ant.get_located_town()][ant.get_allowed_towns()[allowed_town]] ** beta
+            for next_town in range(0, dimension):
+                if next_town in ant.get_allowed_towns():
+                    a = pheromone[ant.get_located_town()][next_town] ** alpha * visibility[ant.get_located_town()][next_town] ** beta
+                    probability_list.append(a/sum_all)
+                else:
+                    probability_list.append(0)
+            r = rand.uniform(0, 1)
+            total = 0.0
+            for i in range(0, dimension):
+                total = total + probability_list[i]
+                if total >= r:
+                    next_town = i
+                    break
 
-            # Προθέτει στην λίστα την πόλη με την μεγαλύτερη πιθανότητα.
-            ant.set_tour((ant.located_town, next_town))
-            # Γίνεται τρέχον πόλη η πόλη με την μεγαλύτερη πιθανότητα.
+            print(probability_list)
+            ant.set_tour((ant.get_located_town(), next_town))
             ant.set_located_town(next_town)
-            # Την αφαιρεί απο την λίστα με τις επιτρεπόμενες πόλεις
-            ant.get_allowed_towns().remove(ant.get_located_town())
-        # Προσθέτει στην λίστα με την διαδρομή την αρχική πόλη
+            ant.get_allowed_towns().remove(next_town)
+            probability_list.clear()
         ant.set_tour((ant.get_located_town(), ant.get_starting_town()))
-        # Γίνεται τρέχον πόλη η αρχική.
+        # # Γίνεται τρέχον πόλη η αρχική.
         ant.set_located_town(ant.get_starting_town())
+
+
+        # global next_town
+        # for iteration in range(0, dimension - 1):
+        #     located_town = ant.get_located_town()
+        #     allowed_towns = ant.get_allowed_towns()
+        #     max_probability = 0
+        #     # Για κάθε τιμή της λίστας
+        #     for index in range(0, len(allowed_towns)):
+        #         # Υπολογισμος πιθανότητας να μετακινηθεί απο την πόλη που βρίσκεται αυτη την στιμγή σε μια αλλή πόλη που
+        #         # βρίσκεται στην λίστα με τις πόλεις που επιτρέπεται να μετακινηθεί.
+        #         probability = Ant.transition_probability(located_town, allowed_towns[index], alpha, beta, pheromone,
+        #                                                  visibility,
+        #                                                  allowed_towns)
+        #         if probability > max_probability:
+        #             max_probability = probability
+        #             next_town = allowed_towns[index]
+        #
+        #     # Προθέτει στην λίστα την πόλη με την μεγαλύτερη πιθανότητα.
+        #     ant.set_tour((ant.located_town, next_town))
+        #     # Γίνεται τρέχον πόλη η πόλη με την μεγαλύτερη πιθανότητα.
+        #     ant.set_located_town(next_town)
+        #     # Την αφαιρεί απο την λίστα με τις επιτρεπόμενες πόλεις
+        #     ant.get_allowed_towns().remove(ant.get_located_town())
+        # # Προσθέτει στην λίστα με την διαδρομή την αρχική πόλη
+        # ant.set_tour((ant.get_located_town(), ant.get_starting_town()))
+        # # Γίνεται τρέχον πόλη η αρχική.
+        # ant.set_located_town(ant.get_starting_town())
         return ant.get_tour()
 
     @staticmethod
@@ -265,7 +295,8 @@ class Colony:
         """
         for i in range(0, len(pheromone)):
             for j in range(0, len(pheromone)):
-                pheromone[i][j] = evaporation_rate * pheromone[i][j] + quantity[i][j]
+                if i!=j:
+                    pheromone[i][j] = (1 - evaporation_rate) * pheromone[i][j] + quantity[i][j]
         return pheromone
 
     def run(self):
@@ -299,10 +330,10 @@ class Colony:
         # Για κάθε κύκλο.
         nc = 0
         while nc < self.number_of_cycles:
+            print(nc)
             # Για κάθε μυρμήγκι.
-            for k in range(0, self.number_of_ants):
+            for ant in ants:
                 # print("ant", k)
-                ant = ants[k]
                 # Δημηουργία διαδρομής του μυρμηγκιού
                 tours = Colony.built_tour(ant, self.alpha, self.beta, pheromone, visibility, self.dimension)
                 # print(tours)
@@ -325,8 +356,7 @@ class Colony:
                 ants[k].set_allowed_towns(Ant.initialize_allowed_towns(self.dimension))
                 ants[k].get_tour().clear()
                 length_tours.clear()
-                ants[k].set_located_town(ants[k].get_starting_town())
-                ants[k].get_allowed_towns().remove(ants[k].get_starting_town())
+                ants[k].get_allowed_towns().remove(ants[k].get_located_town())
             nc += 1
         print("Parameters:")
         print("alpha", self.alpha)
