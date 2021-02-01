@@ -207,12 +207,14 @@ class Colony:
         for iteration in range(0, dimension - 1):
             sum_all = 0
             probability_list = list()
-            for allowed_town in range(0,len(ant.get_allowed_towns())):
-                sum_all += pheromone[ant.get_located_town()][ant.get_allowed_towns()[allowed_town]] ** alpha * visibility[ant.get_located_town()][ant.get_allowed_towns()[allowed_town]] ** beta
+            for allowed_town in range(0, len(ant.get_allowed_towns())):
+                sum_all += (pheromone[ant.get_located_town()][ant.get_allowed_towns()[allowed_town]] ** alpha) * \
+                           (visibility[ant.get_located_town()][ant.get_allowed_towns()[allowed_town]] ** beta)
             for next_town in range(0, dimension):
                 if next_town in ant.get_allowed_towns():
-                    a = pheromone[ant.get_located_town()][next_town] ** alpha * visibility[ant.get_located_town()][next_town] ** beta
-                    probability_list.append(a/sum_all)
+                    a = (pheromone[ant.get_located_town()][next_town] ** alpha) * \
+                        (visibility[ant.get_located_town()][next_town] ** beta)
+                    probability_list.append(a / sum_all)
                 else:
                     probability_list.append(0)
             r = rand.uniform(0, 1)
@@ -223,67 +225,16 @@ class Colony:
                     next_town = i
                     break
 
-            print(probability_list)
+            # print(probability_list)
             ant.set_tour((ant.get_located_town(), next_town))
             ant.set_located_town(next_town)
             ant.get_allowed_towns().remove(next_town)
             probability_list.clear()
         ant.set_tour((ant.get_located_town(), ant.get_starting_town()))
-        # # Γίνεται τρέχον πόλη η αρχική.
         ant.set_located_town(ant.get_starting_town())
 
-
-        # global next_town
-        # for iteration in range(0, dimension - 1):
-        #     located_town = ant.get_located_town()
-        #     allowed_towns = ant.get_allowed_towns()
-        #     max_probability = 0
-        #     # Για κάθε τιμή της λίστας
-        #     for index in range(0, len(allowed_towns)):
-        #         # Υπολογισμος πιθανότητας να μετακινηθεί απο την πόλη που βρίσκεται αυτη την στιμγή σε μια αλλή πόλη που
-        #         # βρίσκεται στην λίστα με τις πόλεις που επιτρέπεται να μετακινηθεί.
-        #         probability = Ant.transition_probability(located_town, allowed_towns[index], alpha, beta, pheromone,
-        #                                                  visibility,
-        #                                                  allowed_towns)
-        #         if probability > max_probability:
-        #             max_probability = probability
-        #             next_town = allowed_towns[index]
-        #
-        #     # Προθέτει στην λίστα την πόλη με την μεγαλύτερη πιθανότητα.
-        #     ant.set_tour((ant.located_town, next_town))
-        #     # Γίνεται τρέχον πόλη η πόλη με την μεγαλύτερη πιθανότητα.
-        #     ant.set_located_town(next_town)
-        #     # Την αφαιρεί απο την λίστα με τις επιτρεπόμενες πόλεις
-        #     ant.get_allowed_towns().remove(ant.get_located_town())
-        # # Προσθέτει στην λίστα με την διαδρομή την αρχική πόλη
-        # ant.set_tour((ant.get_located_town(), ant.get_starting_town()))
-        # # Γίνεται τρέχον πόλη η αρχική.
-        # ant.set_located_town(ant.get_starting_town())
-        return ant.get_tour()
-
     @staticmethod
-    def quantity_per_unit_of_length_of_pheromone(ants, tour_length, quantity):
-        """
-        Υπολογισμός της ποσότητας φερομόνης ανα μονάδα συνολικού μήκους διαδρομης
-        κάθε ακμής που την  επισκέφτηκε κάθε μηρμήγκι.
-
-        :param quantity: Πίνακας με την ποσότητα φερομόνης...σε κάθε ακμη
-        :param ants: Λίστα με τα μυρμήγκια που βρίσκονται στης αποκία.
-        :param tour_length:Συνολικό μήκος διαδρομής
-        :return: ποσότητας φερομόνης ανα μονάδα συνολικού μήκους διαδρομης σε κάθε ακμή
-        """
-        for i in range(0, len(quantity)):
-            for j in range(0, len(quantity)):
-                for k in range(len(ants)):
-                    if (i, j) in ants[k].get_tour():
-                        d = 1 / tour_length[k]
-                    else:
-                        d = 0
-                    quantity[i][j] += d
-        return quantity
-
-    @staticmethod
-    def update_pheromone(pheromone, quantity, evaporation_rate):
+    def update_pheromone(ants, pheromone, number_of_towns, evaporation_rate, length_tours):
         """
         Ενημέρωση φερομόνης στις ακμές του γράφου
 
@@ -293,10 +244,25 @@ class Colony:
             πάνω στις ακμές του γράφου(array)
         :return:Πίανκας με την ενημερωμένη φερομόνη(array).
         """
-        for i in range(0, len(pheromone)):
-            for j in range(0, len(pheromone)):
-                if i!=j:
-                    pheromone[i][j] = (1 - evaporation_rate) * pheromone[i][j] + quantity[i][j]
+        for ant in ants:
+            for i in range(0, number_of_towns):
+                for j in range(0, number_of_towns):
+                    if i != j:
+                        pheromone[ant.get_tour()[i][0]][ant.get_tour()[j][1]] += 1 / length_tours[ant.get_ant_id()]
+                        pheromone[ant.get_tour()[j][0]][ant.get_tour()[j][1]] += 1 / length_tours[ant.get_ant_id()]
+                    else:
+                        pheromone[i][j] = 0
+                        pheromone[j][i] = 0
+
+        for i in range(0, number_of_towns):
+            for j in range(0, number_of_towns):
+                if i != j:
+                    pheromone[i][j] *= (1 - evaporation_rate)
+                    pheromone[j][i] *= (1 - evaporation_rate)
+                else:
+                    pheromone[i][j] = 0
+                    pheromone[j][i] = 0
+
         return pheromone
 
     def run(self):
@@ -341,16 +307,15 @@ class Colony:
                 length_tours.append(Ant.compute_tour_length(ant, self.a_graph))
                 # print("length:", length_tours)
             # Υπολογισμός ποσότητας φερομόνης ανα μονάδα συνολικού μήκους διαδρομης κάθε ακμής
-            quantity = Colony.quantity_per_unit_of_length_of_pheromone(self.ants, length_tours, quantity)
             # Ενημέρωση φερομόνης.
-            pheromone = Colony.update_pheromone(pheromone, quantity, self.evaporation_rate)
+            pheromone = Colony.update_pheromone(ants, pheromone, self.dimension, self.evaporation_rate, length_tours)
 
             min_length = min(length_tours)
             if min_length < min_length_all_time:
                 min_length_all_time = min_length
                 min_tour = ants[length_tours.index(min(length_tours))].get_tour()
-                print(min_length_all_time)
-                print(min_tour)
+                # print(min_length_all_time)
+                # print(min_tour)
 
             for k in range(0, self.number_of_ants):
                 ants[k].set_allowed_towns(Ant.initialize_allowed_towns(self.dimension))
