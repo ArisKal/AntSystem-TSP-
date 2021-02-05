@@ -244,26 +244,21 @@ class Colony:
             πάνω στις ακμές του γράφου(array)
         :return:Πίανκας με την ενημερωμένη φερομόνη(array).
         """
-        # pheromone = np.zeros((number_of_towns, number_of_towns))
+        delta = np.zeros((number_of_towns, number_of_towns))
         for ant in ants:
-            for i in range(0, number_of_towns):
-                for j in range(0, number_of_towns):
-                    if i!=j:
-                        for tour in range(0,len(ant.get_tour())):
-                            pheromone[ant.get_tour()[tour][0]][ant.get_tour()[tour][1]] += 1 / length_tours[ant.get_ant_id()]
-                            pheromone[ant.get_tour()[tour][1]][ant.get_tour()[tour][0]] += 1 / length_tours[ant.get_ant_id()]
-                    else:
-                            pheromone[i][j] = 0
-                            pheromone[j][i] = 0
+
+            for tour in range(0,len(ant.get_tour())):
+                delta[ant.get_tour()[tour][0]][ant.get_tour()[tour][1]] += 1 / length_tours[ant.get_ant_id()]
+                delta[ant.get_tour()[tour][1]][ant.get_tour()[tour][0]] += 1 / length_tours[ant.get_ant_id()]
 
         for i in range(0, number_of_towns):
             for j in range(0, number_of_towns):
                 if i != j:
-                    pheromone[i][j] *= (1 - evaporation_rate)
-                    pheromone[j][i] *= (1 - evaporation_rate)
+                    pheromone[i][j] = (1-evaporation_rate) * pheromone[i][j] + delta[i][j]
+                    # pheromone[j][i] *= (1 - evaporation_rate) + delta[j][i]
                 else:
                     pheromone[i][j] = 0
-                    pheromone[j][i] = 0
+                    # pheromone[j][i] = 0
 
         return pheromone
 
@@ -303,7 +298,7 @@ class Colony:
             for ant in ants:
                 # print("ant", k)
                 # Δημηουργία διαδρομής του μυρμηγκιού
-                tours = Colony.built_tour(ant, self.alpha, self.beta, pheromone, visibility, self.dimension)
+                Colony.built_tour(ant, self.alpha, self.beta, pheromone, visibility, self.dimension)
                 # print(tours)
                 # Υπολογισμός κλοστους της διαδρομής και εισαγωγή στην λίστα
                 length_tours.append(Ant.compute_tour_length(ant, self.a_graph))
