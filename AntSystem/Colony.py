@@ -30,6 +30,7 @@ class Colony:
         self.evaporation_rate = evaporation_rate
         self.number_of_cycles = number_of_cycles
         self.ants = list()
+        self.delta = np.zeros((dimension, dimension))
 
     def set_dimension(self, dimension):
         """
@@ -190,51 +191,7 @@ class Colony:
         return ants
 
     @staticmethod
-    def built_tour(ant, alpha, beta, pheromone, visibility, dimension):
-        """
-        Μέθοδος που κατασευάζει την διαδρομή που θα ακολουθήσει το μυρμήγκι.
-        :param ant: Αντικείμενο τύπου Ant.
-        :param alpha: Mia σταθερή παράμετρος α.
-        :param beta: Mia σταθερή παράμετρος β.
-        :param pheromone: Η φερομονη στις ακμές μεταξύ των πόλεων.
-        :param visibility: Η "ορατότητα" στις ακμές μεταξύ των πόλεων.
-        :param dimension: Η διάσταση του προβλήματος
-        :return: ενας πίνακα με την διαφρομη που ακολούθησε το μυρμήγκι
-        """
-        # Μέχρι να αδειάσει η λίστα με τις πόλεις που επιτεπεται να πάει το μυρμήγκι
-        # είναι το σύνολο των πόλεων -1 γιάτι ήδη έχουμε αφαιρέσει απο την λίστα την αρχική πόλη.
-        global next_town
-        for iteration in range(0, dimension - 1):
-            sum_all = 0
-            probability_list = list()
-            for allowed_town in range(0, len(ant.get_allowed_towns())):
-                sum_all += (pheromone[ant.get_located_town()][ant.get_allowed_towns()[allowed_town]] ** alpha) * \
-                           (visibility[ant.get_located_town()][ant.get_allowed_towns()[allowed_town]] ** beta)
-            for next_town in range(0, dimension):
-                if next_town in ant.get_allowed_towns():
-                    a = (pheromone[ant.get_located_town()][next_town] ** alpha) * \
-                        (visibility[ant.get_located_town()][next_town] ** beta)
-                    probability_list.append(a / sum_all)
-                else:
-                    probability_list.append(0)
-            r = rand.uniform(0, 1)
-            total = 0.0
-            for i in range(0, dimension):
-                total = total + probability_list[i]
-                if total >= r:
-                    next_town = i
-                    break
-
-            # print(probability_list)
-            ant.set_tour((ant.get_located_town(), next_town))
-            ant.set_located_town(next_town)
-            ant.get_allowed_towns().remove(next_town)
-            probability_list.clear()
-        ant.set_tour((ant.get_located_town(), ant.get_starting_town()))
-        ant.set_located_town(ant.get_starting_town())
-
-    @staticmethod
-    def update_pheromone(ants, pheromone, number_of_towns, evaporation_rate, length_tours):
+    def update_pheromone(pheromone, number_of_towns, evaporation_rate, delta):
         """
         Ενημέρωση φερομόνης στις ακμές του γράφου
 
@@ -244,13 +201,6 @@ class Colony:
             πάνω στις ακμές του γράφου(array)
         :return:Πίανκας με την ενημερωμένη φερομόνη(array).
         """
-        delta = np.zeros((number_of_towns, number_of_towns))
-        for ant in ants:
-
-            for tour in range(0,len(ant.get_tour())):
-                delta[ant.get_tour()[tour][0]][ant.get_tour()[tour][1]] += 1 / length_tours[ant.get_ant_id()]
-                delta[ant.get_tour()[tour][1]][ant.get_tour()[tour][0]] += 1 / length_tours[ant.get_ant_id()]
-
         for i in range(0, number_of_towns):
             for j in range(0, number_of_towns):
                 if i != j:
@@ -283,6 +233,7 @@ class Colony:
         visibility = Colony.set_visibility(self.a_graph)
         # Αρχικοποίση μυρμήγκιών στην αποικία.
         ants = Colony.initialize_ants(self.ants, self.number_of_ants, self.dimension)
+        graph = self.a_graph
         print("============================Initialize========================================")
         # for k in range(0, self.number_of_ants):
         #     print("ant id:", ants[k].get_ant_id())
@@ -298,30 +249,32 @@ class Colony:
             for ant in ants:
                 # print("ant", k)
                 # Δημηουργία διαδρομής του μυρμηγκιού
-                Colony.built_tour(ant, self.alpha, self.beta, pheromone, visibility, self.dimension)
+                Ant.build_tour(ant, self.alpha, self.beta, pheromone, visibility, self.dimension)
                 # print(tours)
                 # Υπολογισμός κλοστους της διαδρομής και εισαγωγή στην λίστα
-                length_tours.append(Ant.compute_tour_length(ant, self.a_graph))
+                length = Ant.compute_tour_length(ant, graph)
+                print(length)
+                delta = ant.get_amount_of_phreromone_deposit_by_ant(self.delta)
                 # print("length:", length_tours)
             # Υπολογισμός ποσότητας φερομόνης ανα μονάδα συνολικού μήκους διαδρομης κάθε ακμής
             # Ενημέρωση φερομόνης.
-            pheromone = Colony.update_pheromone(ants, pheromone, self.dimension, self.evaporation_rate, length_tours)
+            # pheromone = Colony.update_pheromone(pheromone, self.dimension, self.evaporation_rate, delta)
 
-            min_length = min(length_tours)
-            if min_length < min_length_all_time:
-                min_length_all_time = min_length
-                min_tour = ants[length_tours.index(min(length_tours))].get_tour()
-                # print(min_length_all_time)
-                # print(min_tour)
+            # min_length = min(length_tours)
+            # if min_length < min_length_all_time:
+            #     min_length_all_time = min_length
+            #     min_tour = ants[length_tours.index(min(length_tours))].get_tour()
+            #     # print(min_length_all_time)
+            #     # print(min_tour)
 
-            for k in range(0, self.number_of_ants):
-                ants[k].set_allowed_towns(Ant.initialize_allowed_towns(self.dimension))
-                ants[k].get_tour().clear()
-                length_tours.clear()
-                ants[k].get_allowed_towns().remove(ants[k].get_located_town())
-            nc += 1
-        print("Parameters:")
-        print("alpha", self.alpha)
-        print("beta", self.beta)
-        print("evaporation_rate", self.evaporation_rate)
-        print("Minimum length:", min_length_all_time, ":", min_tour)
+        #     for k in range(0, self.number_of_ants):
+        #         ants[k].set_allowed_towns(Ant.initialize_allowed_towns(self.dimension))
+        #         ants[k].get_tour().clear()
+        #         length_tours.clear()
+        #         ants[k].get_allowed_towns().remove(ants[k].get_located_town())
+        #     nc += 1
+        # print("Parameters:")
+        # print("alpha", self.alpha)
+        # print("beta", self.beta)
+        # print("evaporation_rate", self.evaporation_rate)
+        # print("Minimum length:", min_length_all_time, ":", min_tour)
