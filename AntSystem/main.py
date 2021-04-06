@@ -1,6 +1,6 @@
 import sys;
 print("PATH", sys.path)
-sys.path.extend(['/home/runner/work/AntSystem-TSP-/AntSystem-TSP-/AntSystem'])
+sys.path.extend(['/home/runner/work/AntSystem-TSP-/AntSystem'])
 # print(sys.path)
 
 from AntSystem.ReadData import ReadData
