@@ -1,4 +1,6 @@
 import random as rand
+
+
 class Ant:
     """
     Κλάση Ant περιέχει όλα τα χαρακτηρηστικά του μηρμηγκιού
@@ -23,7 +25,6 @@ class Ant:
         # Κενή λίστα με τις πόλεις που έχει επισκεφτει το μηρμήγκι.
         self.tour = list()
         self.tour_length = 0
-
 
     def set_ant_id(self, ant_id):
         """
@@ -60,6 +61,9 @@ class Ant:
         """
         self.tour.append(town)
 
+    def set_tour_length(self, tour_length):
+        self.tour_length = tour_length
+
     def get_ant_id(self):
         """
         Επιστρέφει το id του μυρμηγκιού.
@@ -95,6 +99,9 @@ class Ant:
         """
         return self.tour
 
+    def get_tour_length(self):
+        return self.tour_length
+
     @staticmethod
     def initialize_allowed_towns(dimension):
         """
@@ -110,7 +117,7 @@ class Ant:
     @staticmethod
     def build_tour(ant, number_of_towns, pheromone, visibility, alpha, beta):
         """
-        Κάθε μυρμίγκι "χτίζει" την διαδρομή που θα ακολούθήσει πάνω στον γραφο σε συνάρτηση την φερομιόνη που
+        Κάθε μυρμήγκι "χτίζει" την διαδρομή που θα ακολούθήσει πάνω στον γραφο σε συνάρτηση την φερομόνη που
         υπάρχει την δεδομένη στιγμή και και ορατότητα, τελος επιστρέφει στην αρχικλη θέση.
         :param ant: Αντικέιμενο ant.
         :param number_of_towns: Ο συνολοκός αριθμός των πόλεων πάνω στον γράφο.
@@ -119,17 +126,19 @@ class Ant:
         :param alpha: Μία σταθερή τιμή α
         :param beta: Μια σταθέρη τιμη β
         """
-        # Το μυρμίγκι θα κάνει number_of_towns - 1 επαναλήψεις για να χτίσει την διαδρομή του γιατι γιατί βρίσκεται
+        # Το μυρμήγκι θα κάνει number_of_towns - 1 επαναλήψεις για να χτίσει την διαδρομή του γιατι γιατί βρίσκεται
         # στην αρχική πόλη.
+        global next_town
         for iteration in range(0, number_of_towns - 1):
             sum_all = 0
             # Η λίστα υα περιέχει τις πιθανότητες να πάει στην επόμενη πόλη.
             probability_list = list()
             # Για όλες τις πόλεις που **επιτρέπεται** να πάει το μυρμίγκι.
-            for allowed_town in range(0, len(ant.get_allowed_towns())):
+            for next_town1 in range(0, number_of_towns):
                 # Το αθροισμα των πόλεων απο την παρακάτω συνάρτηση:
-                sum_all += (pheromone[ant.get_located_town()][ant.get_allowed_towns()[allowed_town]] ** alpha) * \
-                           (visibility[ant.get_located_town()][ant.get_allowed_towns()[allowed_town]] ** beta)
+                if next_town1 in ant.get_allowed_towns():
+                    sum_all += (pheromone[ant.get_located_town()][next_town1] ** alpha) * \
+                               (visibility[ant.get_located_town()][next_town1] ** beta)
             # Για **όλες** τις πόλεις που υπάρχουν στον γράφο:
             for next_town in range(0, number_of_towns):
                 # Αν η πιθανή πόλη βρίσκεται στις επιτρέπόμενες πόλεις τοτέ
@@ -147,7 +156,6 @@ class Ant:
             # Επιλογή της επομενης πόλης απο την λίστα
             random_number = rand.uniform(0, 1)
             total = 0.0
-            next_town = 0
             for i in range(0, number_of_towns):
                 total = total + probability_list[i]
                 if total >= random_number:
@@ -158,11 +166,15 @@ class Ant:
             ant.set_located_town(next_town)
             # Αφαιρεί απο την λίστα με τις επιτρεπόμενς πόλεις την πόλη αυτή.
             ant.get_allowed_towns().remove(next_town)
+            # print("nexttown", next_town)
+            # print("allowed towns", ant.get_allowed_towns())
+            # print("prpb list", probability_list )
             # Καθαρίζει την λιστα με τις πιθανότητες
             probability_list.clear()
         # Επιστρέφει το μυρμήγκι στην αρχικλη πόλη.
         ant.set_tour((ant.get_located_town(), ant.get_starting_town()))
         ant.set_located_town(ant.get_starting_town())
+        return ant.get_tour()
 
     @staticmethod
     def compute_tour_length(ant, a_graph):
@@ -173,24 +185,8 @@ class Ant:
         :return: συνολικό μήκος διαδρομής.(integer)
         """
         # Υπολογισμος απο την λίστα με τις ακμές το μήκος της συνολικής διαδρομής
+        length = 0
         for town in range(0, len(a_graph)):
-            ant.tour_length += a_graph[ant.tour[town][0]][ant.tour[town][1]]
-        return ant.tour_length
-
-
-    # def get_amount_of_phreromone_deposit_by_ant(self, delta):
-    #     """
-    #     Η ποσότητα φερομόνης που αφήνει το κάθε μυρμίγκι απο στις ακμές του γράφου.\
-    #     Υπολογίζεται απο τον τύπο:
-    #     delta_ant(x,y) = Q / length_ant
-    #     Q = 1
-    #     :return: Η ποσότητα φερομόνης που αφήνει το  μυρμήγκι απο στις ακμές του γράφου.
-    #     """
-    #     for edge in range(0, len(self.tour)):
-    #         delta[self.tour[edge][0]][self.tour[edge][1]] += 1 / self.tour_length
-    #         delta[self.tour[edge][1]][self.tour[edge][0]] += 1 / self.tour_length
-    #
-
-
-
-
+            length += a_graph[ant.tour[town][0]][ant.tour[town][1]]
+        ant.set_tour_length(length)
+        return ant.get_tour_length()
