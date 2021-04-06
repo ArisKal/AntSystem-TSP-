@@ -1,5 +1,5 @@
 import sys;
-print(sys.path)
+print("PATH", sys.path)
 # sys.path.extend(['/home/aris/PycharmProjects/AntSystem(TSP)'])
 # print(sys.path)
 
