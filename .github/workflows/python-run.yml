@@ -31,5 +31,6 @@ jobs:
    
     - name: Run AntSystem
       run: |
-        python3 main.py
+        pytest AntSystem-TSP-/AntSystem/
+
 
