@@ -1,6 +1,7 @@
+import sys; print('Python %s on %s' % (sys.version, sys.platform))
+sys.path.extend(['/home/aris/PycharmProjects/AntSystem(TSP)'])
 from AntSystem.ReadData import ReadData
 from AntSystem.Colony import Colony
-
 
 def main():
     read_data = ReadData("../data/ulysses16.xml")

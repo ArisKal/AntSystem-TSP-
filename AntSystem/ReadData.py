@@ -1,7 +1,6 @@
 import xml.etree.ElementTree as ET
 import numpy as np
 
-
 class ReadData:
     """
     Κλάση ReadData η οποία θα διβάζει τα προβλήματα (TSP) σε μορφή *.xml και τα μετρέπει σε πίνακα (n*n) n = διάσταση
