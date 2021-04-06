@@ -1,5 +1,5 @@
 import sys; print('Python %s on %s' % (sys.version, sys.platform))
-sys.path.extend(['/home/aris/PycharmProjects/AntSystem(TSP)'])
+sys.path.extend(['/home/runner/work/AntSystem-TSP-/AntSystem-TSP-'])
 from AntSystem.ReadData import ReadData
 from AntSystem.Colony import Colony
 
