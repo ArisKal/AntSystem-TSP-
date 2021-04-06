@@ -31,7 +31,7 @@ jobs:
    
     - name: Run AntSystem
       run: |
-        python AntSystem/main.py
+        python /home/runner/work/AntSystem-TSP-/AntSystem-TSP-/AntSystem/main.py
 
 
 
